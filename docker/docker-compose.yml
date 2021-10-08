@@ -14,6 +14,8 @@ services:
      - 18000-18100:18000-18100/udp
      #### Flash Operator Panel
      - 4445:4445
+     - 5038:5038
+     - 8088:8088
     volumes:
       - ./certs:/certs
       - ./data:/data
