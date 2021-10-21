@@ -1,0 +1,123 @@
+
+https://github.com/asterisk
+
+exten => name,priority,application()
+
+[incoming]
+exten => s,1,Answer()
+exten => s,n,Playback(hello-world)
+exten => s,n,Hangup()
+
+[incoming2]
+exten => 123,1,Answer()
+exten => 123,n,Background(main-menu)
+exten => 123,n,WaitExten()
+exten => 1,1,Playback(digits/1)
+exten => 2,1,Playback(digits/2)
+exten => 3,1,Playback(digits/3)
+exten => 4,1,Playback(digits/4)
+
+[incoming3]
+exten => 123,1,Answer()
+exten => 123,n,Background(main-menu)
+exten => 1,1,Playback(digits/1)
+exten => 1,n,Goto(incoming,123,1)
+exten => 2,1,Playback(digits/2)exten => 2,n,Goto(incoming,123,1)
+
+[TestMenu]
+exten => start,1,Answer()
+   same => n,Background(main-menu)
+   same => n,WaitExten(5)
+
+exten => 1,1,Playback(digits/1)
+   same => n,Goto(TestMenu,start,1)
+
+exten => 2,1,Playback(digits/2)
+   same => n,Goto(TestMenu,start,1)
+
+exten => i,1,Playback(pbx-invalid)
+   same => n,Goto(TestMenu,start,1)
+
+exten => t,1,Playback(vm-goodbye)
+   same => n,Hangup()
+   
+   
+   
+   
+**********************
+
+[incoming]
+exten => s,1,GotoIfTime(9:00-18:00|mon-fri|*|*?worktime,s,1:redirect)
+
+[worktime]
+exten => s,1,Answer
+exten => s,n,Mixmonitor(/records/${STRFTIME(${EPOCH},,%Y-%m-%d)}/${STRFTIME(${EPOCH},,%Y-%m-%d_%H.%M.%S)}_from_${CALLERID(num)}}_to_${EXTEN}.mp3)
+exten => s,n,Background(welcome)
+exten => s,n,Dial(SIP/101)
+exten => s,n,Hangup
+
+[redirect]
+exten => s,1,Answer
+exten => s,n,Mixmonitor(/records/${STRFTIME(${EPOCH},,%Y-%m-%d)}/${STRFTIME(${EPOCH},,%Y-%m-%d_%H.%M.%S)}_from_${CALLERID(num)}}_to_${EXTEN}.mp3)
+exten => s,n,Background(offtime)
+exten => s,n,Dial(SIP/trunk1/79651793509)
+exten => s,n,Dial(SIP/trunk1/79637683011)
+exten => s,n,Dial(SIP/trunk1/79651793512)
+exten => s,n,Dial(SIP/trunk1/79651793513)
+exten => s,n,Dial(SIP/trunk1/79637683005)
+exten => s,n,Dial(SIP/trunk2/79651793509)
+exten => s,n,Dial(SIP/trunk2/79637683011)
+exten => s,n,Dial(SIP/trunk2/79651793512)
+exten => s,n,Dial(SIP/trunk2/79651793513)
+exten => s,n,Dial(SIP/trunk2/79637683005)
+   
+   
+   
+   
+
+CLI*****
+dialplan reload
+
+[IVR] 
+exten => s,1,Wait(1) 
+exten => s,2,Set(TIMEOUT(digit)=3)  
+exten => s,3,Set(TIMEOUT(response)=10) 
+exten => s,4,BackGround(custom/engmenu) 
+exten => s,5,WaitExten() 
+exten => 1,1,goto(IVR1,s,1) 
+exten => 2,1,goto(IVR2,s,1) 
+exten => i,1,Playback(invalid) 
+exten => i,2,Playback(goodbye) 
+exten => i,3,Hangup 
+exten => t,1,goto(IVR,s,2) 
+exten => h,1,Hangup
+
+[IVR1]
+exten => s,1,Set(TIMEOUT(digit)=7) ; 
+exten => s,2,Set(TIMEOUT(response)=10) 
+exten => s,3,BackGround(custom/engmenu) 
+exten => s,4,WaitExten() 
+exten => 1,1,Playback(pls-wait-connect-call) 
+exten => 1,2,Dial(SIP/101,45,r) 
+exten => i,1,Playback(invalid) 
+exten => i,2,Playback(goodbye) 
+exten => i,3,hangup 
+exten => t,1,goto(IVR1,s,1) 
+exten => h,1,Hangup
+ 
+
+[IVR2] 
+exten => s,1,Set(TIMEOUT(digit)=7) 
+exten => s,2,Set(TIMEOUT(response)=10) 
+exten => s,3,BackGround(custom/engmenu) 
+exten => s,4,WaitExten() 
+#exten => 1,1,Playback(pls-wait-connect-call) 
+exten => 1,1,BackGround(please-enter-the&telephone-number&for&your&call-forwarding)
+exten => 1,2,Read(ex,,3,,2,10) 
+exten => 1,3,Dial(SIP/${ex},45,r) 
+exten => 1,4,Voicemail(${ex}@default,u)
+exten => i,1,Playback(invalid) 
+exten => i,2,Playback(goodbye) 
+exten => i,3,hangup 
+exten => t,1,goto(IVR1,s,1) 
+exten => h,1,Hangup
