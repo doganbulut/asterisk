@@ -1,0 +1,7 @@
+Channel: PJSIP/104
+MaxRetries: 1
+RetryTime: 10
+WaitTime: 10
+Context: hello-world2
+Extension: 201
+Priority: 1

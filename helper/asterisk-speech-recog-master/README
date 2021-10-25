@@ -1,0 +1,209 @@
+==============================================
+    Speech recognition script for Asterisk
+==============================================
+
+This script makes use of Google's Cloud Speech API in order to render speech
+to text and return it back to the dialplan as an asterisk channel variable.
+
+------------
+Requirements
+------------
+Perl          The Perl Programming Language
+perl-libwww   The World-Wide Web library for Perl
+perl-libjson  Module for manipulating JSON-formatted data
+IO-Socket-SSL Perl module that implements an interface to SSL sockets.
+flac          Free Lossless Audio Codec
+
+Cloud Speech API key from Google (https://cloud.google.com/speech).
+Internet access in order to contact Google and get the speech data.
+
+------------
+Installation
+------------
+To install copy speech-recog.agi to your agi-bin directory.
+Usually this is /var/lib/asterisk/agi-bin/
+To make sure check your /etc/asterisk/asterisk.conf file
+
+-----
+Usage
+-----
+agi(speech-recog.agi,[lang],[timeout],[intkey],[NOBEEP],[rtimeout],[speechContexts])
+Records from the current channel until 2 seconds of silence are detected
+(this can be set by the user by the 'timeout' argument, -1 for no timeout) or the
+interrupt key (# by default) is pressed. If NOBEEP is set, no beep sound is played
+back to the user to indicate the start of the recording. If 'rtimeout' is set, 
+overwrite to the absolute recording timeout. 'SpeechContext' provides hints to 
+favor specific words and phrases in the results. Usage: [Agamemnon,Midas]
+The recorded sound is send over to Google speech recognition service and the
+returned text string is assigned as the value of the channel variable 'utterance'.
+The scripts sets the following channel variables:
+
+utterance  : The generated text string.
+confidence : A value between 0 and 1 indicating the probability of a correct recognition.
+             Values bigger than 0.95 usually mean that the resulted text is correct.
+
+In case of an unexpected error both these variables are set to '-1'.
+
+--------
+Examples
+--------
+sample dialplan code for your extensions.conf
+
+;Simple speech recognition
+exten => 1234,1,Answer()
+exten => 1234,n,agi(speech-recog.agi,en-US)
+exten => 1234,n,Verbose(1,The text you just said is: ${utterance})
+exten => 1234,n,Verbose(1,The probability to be right is: ${confidence})
+exten => 1234,n,Hangup()
+
+;Speech recognition demo also using googletts.agi for text to speech synthesis:
+exten => 1235,1,Answer()
+exten => 1235,n,agi(googletts.agi,"Say something in English, when done press the pound key.",en)
+exten => 1235,n(record),agi(speech-recog.agi,en-US)
+exten => 1235,n,Verbose(1,Script returned: ${confidence} , ${utterance})
+
+;Check the probability of a successful recognition:
+exten => 1235,n,GotoIf($["${confidence}" > "0.8"]?playback:retry)
+
+;Playback the text
+exten => 1235,n(playback),agi(googletts.agi,"The text you just said was...",en)
+exten => 1235,n,agi(googletts.agi,"${utterance}",en)
+exten => 1235,n,goto(end)
+
+;Retry in case speech recognition wasn't successful:
+exten => 1235,n(retry),agi(googletts.agi,"Can you please repeat more clearly?",en)
+exten => 1235,n,goto(record)
+
+exten => 1235,n(fail),agi(googletts.agi,"Failed to get speech data.",en)
+exten => 1235,n(end),Hangup()
+
+;Voice dialing example
+exten => 1236,1,Answer()
+exten => 1236,n,agi(googletts.agi,"PLease say the number you want to dial.",en)
+exten => 1236,n(record),agi(speech-recog.agi,en-US)
+exten => 1236,n,GotoIf($["${confidence}" > "0.8"]?success:retry)
+
+exten => 1236,n(success),goto(${utterance},1)
+
+exten => 1236,n(retry),agi(googletts.agi,"Can you please repeat?",en)
+exten => 1236,n,goto(record)
+
+-------------------
+Supported Languages
+-------------------
+"af-ZA" Afrikaans (Suid-Afrika)
+"id-ID" Bahasa Indonesia (Indonesia)
+"ms-MY" Bahasa Melayu (Malaysia)
+"ca-ES" Català (Espanya)
+"cs-CZ" Čeština (Česká republika)
+"da-DK" Dansk (Danmark)
+"de-DE" Deutsch (Deutschland)
+"en-AU" English (Australia)
+"en-CA" English (Canada)
+"en-GB" English (Great Britain)
+"en-IN" English (India)
+"en-IE" English (Ireland)
+"en-NZ" English (New Zealand)
+"en-PH" English (Philippines)
+"en-ZA" English (South Africa)
+"en-US" English (United States)
+"es-AR" Español (Argentina)
+"es-BO" Español (Bolivia)
+"es-CL" Español (Chile)
+"es-CO" Español (Colombia)
+"es-CR" Español (Costa Rica)
+"es-EC" Español (Ecuador)
+"es-SV" Español (El Salvador)
+"es-ES" Español (España)
+"es-US" Español (Estados Unidos)
+"es-GT" Español (Guatemala)
+"es-HN" Español (Honduras)
+"es-MX" Español (México)
+"es-NI" Español (Nicaragua)
+"es-PA" Español (Panamá)
+"es-PY" Español (Paraguay)
+"es-PE" Español (Perú)
+"es-PR" Español (Puerto Rico)
+"es-DO" Español (República Dominicana)
+"es-UY" Español (Uruguay)
+"es-VE" Español (Venezuela)
+"eu-ES" Euskara (Espainia)
+"fil-PH" Filipino (Pilipinas)
+"fr-FR" Français (France)
+"gl-ES" Galego (España)
+"hr-HR" Hrvatski (Hrvatska)
+"zu-ZA" IsiZulu (Ningizimu Afrika)
+"is-IS" Íslenska (Ísland)
+"it-IT" Italiano (Italia)
+"lt-LT" Lietuvių (Lietuva)
+"hu-HU" Magyar (Magyarország)
+"nl-NL" Nederlands (Nederland)
+"nb-NO" Norsk bokmål (Norge)
+"pl-PL" Polski (Polska)
+"pt-BR" Português (Brasil)
+"pt-PT" Português (Portugal)
+"ro-RO" Română (România)
+"sk-SK" Slovenčina (Slovensko)
+"sl-SI" Slovenščina (Slovenija)
+"fi-FI" Suomi (Suomi)
+"sv-SE" Svenska (Sverige)
+"vi-VN" Tiếng Việt (Việt Nam)
+"tr-TR" Türkçe (Türkiye)
+"el-GR" Ελληνικά (Ελλάδα)
+"bg-BG" Български (България)
+"ru-RU" Русский (Россия)
+"sr-RS" Српски (Србија)
+"uk-UA" Українська (Україна)
+"he-IL" עברית (ישראל)
+"ar-IL" العربية (إسرائيل)
+"ar-JO" العربية (الأردن)
+"ar-AE" العربية (الإمارات)
+"ar-BH" العربية (البحرين)
+"ar-DZ" العربية (الجزائر)
+"ar-SA" العربية (السعودية)
+"ar-IQ" العربية (العراق)
+"ar-KW" العربية (الكويت)
+"ar-MA" العربية (المغرب)
+"ar-TN" العربية (تونس)
+"ar-OM" العربية (عُمان)
+"ar-PS" العربية (فلسطين)
+"ar-QA" العربية (قطر)
+"ar-LB" العربية (لبنان)
+"ar-EG" العربية (مصر)
+"fa-IR" فارسی (ایران)
+"hi-IN" हिन्दी (भारत)
+"th-TH" ไทย (ประเทศไทย)
+"ko-KR" 한국어 (대한민국)
+"cmn-Hant-TW" 國語 (台灣)
+"yue-Hant-HK" 廣東話 (香港)
+"ja-JP" 日本語（日本）
+"cmn-Hans-HK" 普通話 (香港)
+"cmn-Hans-CN" 普通话 (中国大陆)
+
+-----------------------
+Security Considerations
+-----------------------
+This script contacts Google servers in order send the recorded voice data and get back
+the resulted text. The script uses TLS by default to encrypt all the traffic between
+your PBX and Google servers so no 3rd party can eavesdrop your communication, but your
+voice data will be available to Google under a not yet defined policy.
+
+------------
+Tiny version
+------------
+The '-tiny' suffixed scripts use the HTTP::Tiny perl module instead of LWP::UserAgent and
+JSON::Tiny instead of JSON. This makes them a lot faster when run in small embedded systems
+or boards like the Raspberry pi. They can be used as an in-place replacement of the normal
+scripts and expose the same interface/cli args. To use them just make sure
+you have HTTP::Tiny and JSON::Tiny installed.
+
+-------
+License
+-------
+The speech-recog script for asterisk is distributed under the GNU General Public
+License v2. See COPYING for details.
+
+--------
+Homepage
+--------
+http://zaf.github.com/asterisk-speech-recog/

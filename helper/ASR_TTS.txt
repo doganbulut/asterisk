@@ -1,0 +1,103 @@
+Perl için moduller yuklenir
+https://zaf.github.io/asterisk-googletts/
+sudo yum install perl-libwww-perl
+sudo yum install perl-JSON
+sudo yum install perl-LWP-Protocol-https
+sudo yum install sox
+sudo yum install mpg123
+
+extensions_custom.conf dosyasına my_tts eklenir.
+include => channel-state
+include => hello-world
+include => my_tts
+
+[channel-state]
+exten => 1000,1,NoOp()
+	same =>      n,Stasis(channel-state)
+	same =>      n,Hangup()
+
+[hello-world]
+exten => 200,1,Answer()
+   same => n,Playback(hello-world)
+   same => n,Hangup()
+
+[my_tts]
+exten => 300,1,Answer()
+   same => n,Monitor(wav,${UNIQEID},m)
+   same => n,agi(googletts.agi,"Metin ses dönüşümü testine hoşgeldiniz.",tr)
+   same => n,agi(googletts.agi,"Bu konuşma testi için basit bir Türkçe metindir.",tr)
+   same => n,agi(googletts.agi,"This is a simple text to speech test in english.",en)
+   same => n,agi(googletts.agi,"Esta es una simple prueba en español.",es)
+   same => n,agi(googletts.agi,"Αυτό είναι ένα απλό τέστ στα ελληνικά.",el)
+   same => n,agi(googletts.agi,"これは、日本の簡単なテストです。良い一日を。",ja)
+   same => n,agi(googletts.agi,"这是一个简单的测试，在中国。有一个愉快的一天。",zh-CN)
+   same => n,agi(googletts.agi,"Это простой тест по преобразованию текста в речь на русском языке.",ru)   
+   same => n,Hangup()
+
+ ##########################################################################################################
+
+Perl için moduller yuklenir
+https://github.com/zaf/asterisk-speech-recog
+yum install flac
+
+Google API Activated
+https://console.cloud.google.com/apis/library/speech.googleapis.com?_ga=2.258529929.265978836.1611822205-977969494.1611822205&pli=1&project=savvy-generator-302908&folder=&organizationId=
+
+Speech API aktif edilir. API key oluşturulur.
+https://console.cloud.google.com/apis/credentials?project=savvy-generator-302908
+
+Oluşturlan key agi file içerisine tanımlanır.
+
+extensions_custom.conf dosyasına my_asr eklenir.
+include => channel-state
+include => hello-world
+include => my_tts
+include => my_asr
+
+[channel-state]
+exten => 1000,1,NoOp()
+	same =>      n,Stasis(channel-state)
+	same =>      n,Hangup()
+
+[hello-world]
+exten => 200,1,Answer()
+   same => n,Playback(hello-world)
+   same => n,Hangup()
+
+[my_tts]
+exten => 300,1,Answer()
+   same => n,Monitor(wav,${UNIQEID},m)
+   same => n,agi(googletts.agi,"Metin ses dönüşümü testine hoşgeldiniz.",tr)
+   same => n,agi(googletts.agi,"Bu konuşma testi için basit bir Türkçe metindir.",tr)
+   same => n,agi(googletts.agi,"This is a simple text to speech test in english.",en)
+   same => n,agi(googletts.agi,"Esta es una simple prueba en español.",es)
+   same => n,agi(googletts.agi,"Αυτό είναι ένα απλό τέστ στα ελληνικά.",el)
+   same => n,agi(googletts.agi,"これは、日本の簡単なテストです。良い一日を。",ja)
+   same => n,agi(googletts.agi,"这是一个简单的测试，在中国。有一个愉快的一天。",zh-CN)
+   same => n,agi(googletts.agi,"Это простой тест по преобразованию текста в речь на русском языке.",ru)   
+   same => n,Hangup()
+
+[my_asr]
+exten => 301,1,Answer()
+   same => n,Monitor(wav,${UNIQEID},m)
+   same => n,agi(googletts.agi,"Otomatik konuşma tanıma testine hoş geldiniz.",tr)
+   same => n,agi(speech-recog.agi,tr-TR)
+   same => n,Verbose(1,The text you just said is: ${utterance})
+   same => n,Verbose(1,The probability to be right is: ${confidence})
+   same => n,agi(googletts.agi,"Tekrar ediyorum.",tr)
+   same => n,agi(googletts.agi,"${utterance}",tr)
+   same => n,Hangup()
+   
+   
+//
+$env:GOOGLE_APPLICATION_CREDENTIALS="D:\Asterisk\sttkey\google-stt-key.json"
+set GOOGLE_APPLICATION_CREDENTIALS="D:\Asterisk\sttkey\google-stt-key.json"
+GOOGLE_APPLICATION_CREDENTIALS 
+
+
+
+docker run -d \ --name freepbx \ --restart=always \ --net=host \ --privileged \ -v /docker/freepbx/certs:/certs \ -v /docker/freepbx/www:/www/freepbx \ -v /docker/freepbx/log:/var/log/ \ -v /docker/freepbx/data:/data \ -e DB_EMBEDDED=TRUE \ tiredofit/freepbx
+
+
+
+

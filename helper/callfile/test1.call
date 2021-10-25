@@ -1,0 +1,7 @@
+Channel: Local/961958@from-internal
+MaxRetries: 1
+RetryTime: 10
+WaitTime: 10
+Context: call-file-test
+Extension: 10
+Priority: 1

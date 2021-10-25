@@ -1,0 +1,8 @@
+Channel: PJSIP/104
+MaxRetries: 1
+RetryTime: 10
+WaitTime: 10
+Context: hello-world
+Extension: 200
+Priority: 1
+Set: HATAMESAJI=istanbul email sunucusunda kritik hata var. Hata Kodu 404 Lütfen sistemi en kısa sürede kontrol ediniz.
